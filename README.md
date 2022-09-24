@@ -1,4 +1,4 @@
-![Image text](https://github.com/TinchoLalo/WEBER/tree/master/Assets/Weber.jpeg)
+![Image text](https://github.com/TinchoLalo/WEBER/blob/master/Assets/Weber.jpeg)
 # WEBER BOT
 ## Liga Nacional de Robótica 2022
 
