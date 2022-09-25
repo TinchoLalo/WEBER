@@ -1,8 +1,5 @@
 #include <IRremote.h> 
 #include <IRremoteInt.h>
-#include <Arduino.h>
-#include <Wire.h>
-#include <SoftwareSerial.h>
 
 /*
   @Proyecto:    Robot Mini-Sumo
@@ -11,15 +8,15 @@
   @Descripción: Código para robot minisumo, con sistema de detección infrarrojo
 */
 
-// ========================== Declaración de Variables ==========================
-int emisorIR       = 3;  // emisores infrarrojos controlados a través de transistor 2n2222a
-int emisorLinea    = 2;  // emisores infrarrojos sigue linas 
-const int sensor0        = A0;  // Receptores IR
-const int sensor45       = A1;  //
-const int sensor90       = A2;  //
+// ========================== SENSORES INFRAROJOS ==========================
+int emisorIR       = 12;  // emisores infrarrojos controlados a través de transistor 2n2222a
+//int emisorLinea    = 2;  // emisores infrarrojos sigue linas 
+const int sensor0        = A4;  // Receptores IR
+const int sensor45       = A6;  //
+const int sensor90       = A5;  //
 const int sensor135      = A3;  //
-const int sensor180      = A4;  //
-const int sensor270      = A5;  //
+const int sensor180      = A1;  //
+const int sensor270      = A0;  //
 
 int valor0 = 0;  //inicializamos el valor que va a corresonder con la lectura de los sensores
 int valor45 = 0;
@@ -29,7 +26,7 @@ int valor180 = 0;
 int valor270 = 0;
 
 // ========================== SENSORES SIGUE LINEAS  ==========================
-int sensorA  = A6;
+int sensorA  = A2;
 int sensorB  = A7;
 
 int valorA   = 0;
@@ -41,11 +38,21 @@ int motorR2        = 9;   // Pin Motor Derecha Atras
 int motorL1        = 11;   // Pin Motor Izquierda Adelante
 int motorL2        = 6;   // Pin Motor Izquierda Atras
 
+// velocidades del motor
+int max = 255; 
+int mid = 125;
+
+
+int R1 = mid;
+int R2 = mid;
+int L1 = mid;
+int L2 = mid;
+
 // ========================== LEDS INDICADORES ==================================
 int ledTest        = 13;  // Led indicador encendido
-int ledR           = 7;   // Led indicador Ready, semaforo
-int ledG           = 4;  // Led indicador LUCHA!
-int ledB           = 5;  // Led indicador otros
+int ledR           = 4;   // Led indicador Ready, semaforo
+int ledG           = 7;  // Led indicador LUCHA!
+int ledB           = 8;  // Led indicador otros
 
 /*
 int botonA       = 6;   // Pin de activación
@@ -53,35 +60,49 @@ int botonModo    = 2;
 //int botonReset = ;
 */
 
-int receptorIR = 8;
+
+
+int ref = 500;
+//========================= BUZZER PARLANTE =========================//
+
+int bGND = 2;
+int buzzer = 3;
+
+//  ========================= CONTROL REMOTO =========================//
+int receptorIR = 5;
 IRrecv receptorIr(receptorIR);
 decode_results codigoLeido;
 
 //Condicionales
 
-boolean Test    = true;      // Indica el modo pruebas del código
-boolean Lucha   = false;     // Indica si el sumo ha sido activado para competir
+boolean Test    = false;      // Indica el modo pruebas del código
+boolean Lucha   = true;     // Indica si el sumo ha sido activado para competir
+boolean linea   = false;
 
+//========================= START =========================//
 
 void setup() {
   Serial.begin(9600);
   Serial.println("Weber Bot iniciando..."); //
-
+  
   receptorIr.enableIRIn();
 
-//configuración de los pines de entrada y salida
+  //configuración de los pines de entrada y salida
   
   pinMode(ledTest, OUTPUT);
   pinMode(emisorIR, OUTPUT);
-  pinMode(emisorLinea, OUTPUT);
+  //pinMode(emisorLinea, OUTPUT);
   pinMode(ledR, OUTPUT);
   pinMode(ledG, OUTPUT);  
   pinMode(ledB, OUTPUT);
+  pinMode(bGND, OUTPUT);
+  
 
   digitalWrite(ledR, HIGH);
   digitalWrite(ledG, HIGH);
   digitalWrite(ledB, HIGH);
-  
+  digitalWrite(bGND, HIGH);
+  //analogWrite(Buzzer, 150);
 
  // pinMode(botonA, INPUT);
   pinMode(motorR1, OUTPUT);
@@ -103,36 +124,38 @@ void setup() {
 
   for(int i=0; i<3; i++){
     digitalWrite(ledTest, HIGH);
-    delay(500);
+    delay(100);
     digitalWrite(ledTest, LOW);
-    delay(500);      
+    delay(100);      
   }  
 
+  /*
+  tone(buzzer, 1000, 1000);
+  */
 }
 
+//========================= UPDATE =========================//
 void loop(){
+ 
   if(Lucha) {
     Serial.println("<<< MODO LUCHA >>>");
-
-    //
+  
     if (receptorIr.decode(&codigoLeido)) { 
-    Serial.println(codigoLeido.value, HEX);
+      Serial.println(codigoLeido.value, HEX);
 
-    switch (codigoLeido.value) {
+      switch (codigoLeido.value) {
+        case 0xFF6897:
+          for(int i=0; i<5; i++){
+            digitalWrite(ledR, LOW);
+            delay(500);
+            digitalWrite(ledR, HIGH);
+            delay(500);      
+          }  
+          lucha(); 
     
-    case 0xFF6897:
-      for(int i=0; i<5; i++){
-        digitalWrite(ledR, LOW);
-        delay(500);
-        digitalWrite(ledR, HIGH);
-        delay(500);      
-      }  
-
-      lucha(); 
-    
-    break;
-    }
-   receptorIr.resume();
+        break;
+      }
+      receptorIr.resume();
     }
   }//cierra el modo lucha
 
@@ -140,12 +163,11 @@ void loop(){
     Serial.println("<<< MODO TEST >>>");
     test();
   }
-
+  
   else {
     error();
     Serial.println("<<< ERROR: modo no seleccionado >>>");
   }
-
 
 
 }//cierra el loop
@@ -153,37 +175,71 @@ void loop(){
 /////////////////////////////////
 //Programas !!
 
-void lucha(){
+void lucha(){do {  //entro en un bucle
 
   digitalWrite(ledG, LOW);
   digitalWrite(ledB, LOW);
 
   valorA = analogRead(sensorA);
-  valorB = analogRead(sensorB);  
+  //valorB = analogRead(sensorB);  
   //boolean insuto = valor;
   
 
-  if(valorA >700 && valorB >700){
-  //si se encuentra dentro del circulo, escanea y mueve
+  if(valorA<ref){//si se encuentra dentro del circulo, escanea y mueve
 
-
-
-  }
-
-  else if(valorA >700 && valorB <700){
-  //si detectó el limite en el sensor B, volver en sentido contrario y girar
-
-  }
-
-  else if(valorA <700 && valorB >700){
-  //si detectó el limite en el sensor A, volver en sentido contrario y girar
+    if(linea == true){
+      rotarL;
+      delay(500);
+      linea = false;
+    }
   
+    digitalWrite(ledR, HIGH);
+
+    valor0 = analogRead(sensor0);
+    valor45 = analogRead(sensor45);
+    valor90 = analogRead(sensor90);
+    valor135 = analogRead(sensor135);
+    valor180 = analogRead(sensor180);
+    //valor270 = analogRead(sensor270);
+
+    //asignamos valores a los motores
+    if(valor0>50){L1=255;R2=mid;} 
+    else if(valor45>50){L1=255;}
+    else if(valor90>50){R1=255; L1=255;}
+    else if(valor135>50){R1=255;}
+    else if(valor180>50){R1=255;L2=mid;}
+    else {
+    }
+
   }
 
+  else if(valorA>ref){//toca la linea blanca
+    
+    digitalWrite(ledR, LOW);
+    R1 = 0;
+    R2 = 255;
+    L1 = 0;
+    L2 = 255;
+    linea = true;
+  }
   else {
     //error
   }
 
+  //concluimos
+  analogWrite(motorR1, R1);
+  analogWrite(motorR2, R2);
+  analogWrite(motorL1, L1);
+  analogWrite(motorL2, L2);
+  delay(100);
+  R1 = 0;
+  R2 = 0;
+  L1 = 0;
+  L2 = 0;
+
+
+  //digitalWrite(ledR, HIGH)
+  } while(true);
 }
 
 
@@ -193,6 +249,9 @@ void lucha(){
 
 void test() {
   
+  //tone(3, 2000);
+  //noTone(3);
+
   //Prueba LEDs
   digitalWrite(ledG, LOW);
   delay(1000);
@@ -225,23 +284,17 @@ void test() {
 void error(){
   Serial.println("Error desconocido..");
   digitalWrite(ledTest, HIGH);
+  reset();
 }
 
-
-
 /*
-
-
 priorizar el sensor linea, si detecta linea retrocer y girar 180º
-
 Activar renotamente, el robot espara 5s, con secuencia de
 pitidos y ledR, luego comienza la secuencia lucha, ledV y ledB.
-
 escanear y perseguir al contrincante (seguir al contrincante
  si no se detecta una linea)
 La condicion va a ser que el valor de los sigue lineas sea "negro"
 escanear, mover, repetir secuencia.
-
 sino se cumple la condicion de estar dentro del color negro porque llegamos al limite
 entonces ejecutar la funcion, "daleAtras();""
 */
