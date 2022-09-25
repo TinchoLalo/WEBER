@@ -1,12 +1,20 @@
 #include <IRremote.h> 
 #include <IRremoteInt.h>
 
+
 /*
   @Proyecto:    Robot Mini-Sumo
   @Autor:       Equipo Weber Bot
   @Placa:       Arduino NANO
   @Descripción: Código para robot minisumo, con sistema de detección infrarrojo
 */
+
+//seteado
+
+boolean Test    = true;      // Indica el modo pruebas del código
+boolean Lucha   = !Test;     // Indica si el sumo ha sido activado para competir
+boolean TestMotor = true;
+boolean linea   = false;
 
 // ========================== SENSORES INFRAROJOS ==========================
 int emisorIR       = 12;  // emisores infrarrojos controlados a través de transistor 2n2222a
@@ -73,11 +81,7 @@ int receptorIR = 5;
 IRrecv receptorIr(receptorIR);
 decode_results codigoLeido;
 
-//Condicionales
 
-boolean Test    = false;      // Indica el modo pruebas del código
-boolean Lucha   = true;     // Indica si el sumo ha sido activado para competir
-boolean linea   = false;
 
 //========================= START =========================//
 
@@ -159,9 +163,13 @@ void loop(){
     }
   }//cierra el modo lucha
 
-  else if (Test) {
+  else if (Test && !TestMotor) {
     Serial.println("<<< MODO TEST >>>");
     test();
+  }
+
+  else if (TestMotor){
+    testMotor();
   }
   
   else {
@@ -188,8 +196,9 @@ void lucha(){do {  //entro en un bucle
   if(valorA<ref){//si se encuentra dentro del circulo, escanea y mueve
 
     if(linea == true){
-      rotarL;
+      rotarL();
       delay(500);
+      stop();
       linea = false;
     }
   
@@ -203,11 +212,11 @@ void lucha(){do {  //entro en un bucle
     //valor270 = analogRead(sensor270);
 
     //asignamos valores a los motores
-    if(valor0>50){L1=255;R2=mid;} 
-    else if(valor45>50){L1=255;}
-    else if(valor90>50){R1=255; L1=255;}
-    else if(valor135>50){R1=255;}
-    else if(valor180>50){R1=255;L2=mid;}
+    if(valor0>100){L1=255;R2=mid;} 
+    else if(valor45>100){L1=255;}
+    else if(valor90>100){R1=255; L1=255;}
+    else if(valor135>100){R1=255;}
+    else if(valor180>100){R1=255;L2=mid;}
     else {
     }
 
@@ -217,9 +226,9 @@ void lucha(){do {  //entro en un bucle
     
     digitalWrite(ledR, LOW);
     R1 = 0;
-    R2 = 255;
+    R2 = max;
     L1 = 0;
-    L2 = 255;
+    L2 = max;
     linea = true;
   }
   else {
@@ -231,11 +240,11 @@ void lucha(){do {  //entro en un bucle
   analogWrite(motorR2, R2);
   analogWrite(motorL1, L1);
   analogWrite(motorL2, L2);
-  delay(100);
-  R1 = 0;
-  R2 = 0;
-  L1 = 0;
-  L2 = 0;
+  delay(25);
+  R1 = mid;
+  R2 = mid;
+  L1 = mid;
+  L2 = mid;
 
 
   //digitalWrite(ledR, HIGH)
@@ -248,27 +257,52 @@ void lucha(){do {  //entro en un bucle
 //funcion test(#)
 
 void test() {
-  
+    valor0 = analogRead(sensor0);
+    valor45 = analogRead(sensor45);
+    valor90 = analogRead(sensor90);
+    valor135 = analogRead(sensor135);
+    valor180 = analogRead(sensor180);
+    valorA = analogRead(sensorA);
+
+    Serial.print(valor0);
+    Serial.print(" - ");
+    Serial.print(valor45);
+    Serial.print(" - ");
+    Serial.print(valor90);
+    Serial.print(" - ");
+    Serial.print(valor135);
+    Serial.print(" - ");
+    Serial.print(valor180);
+    Serial.print(" - ");
+    Serial.print(valorA);
+    Serial.print(" - ");
+
+    
+
   //tone(3, 2000);
   //noTone(3);
 
   //Prueba LEDs
   digitalWrite(ledG, LOW);
-  delay(1000);
-  digitalWrite(ledG, HIGH);
   digitalWrite(ledB, LOW);
-  delay(1000);
-  digitalWrite(ledB, HIGH);
   digitalWrite(ledR, LOW);
-  delay(1000);
-  digitalWrite(ledR, HIGH);
-
-  //Prueba emisores
-  digitalWrite(emisorIR, HIGH);
-  delay(2000);
-  digitalWrite(emisorIR, LOW);
 
   //Prueba motores
+  /*rotarR();
+  delay(1000);
+  rotarL();
+  delay(1000);
+  adelante();
+  delay(1000);
+  atras();
+  delay(1000);
+  stop();*/
+
+}
+
+void testMotor(){
+  
+  /*
   rotarR();
   delay(1000);
   rotarL();
@@ -278,6 +312,9 @@ void test() {
   atras();
   delay(1000);
   stop();
+  */
+  taladro();
+  //willy();
 
 }
 
@@ -330,4 +367,39 @@ void rotarL(){
   analogWrite(motorR2, 255);
   analogWrite(motorL1, 255);
   analogWrite(motorL2, 0);
+}
+
+//Funciones divertidas
+
+void taladro(){
+
+  for(int C=0; C<200; C++){
+  digitalWrite(ledG, HIGH);
+  digitalWrite(ledB, HIGH);
+  digitalWrite(ledR, LOW);
+  rotarR();
+  delay(40);
+  stop();
+  digitalWrite(ledG, HIGH);
+  digitalWrite(ledB, LOW);
+  digitalWrite(ledR, HIGH);
+  rotarL();
+  delay(40);
+  }
+}
+
+void willy(){
+
+  for(int C=0; C<10; C++){
+  analogWrite(motorR1, 0);
+  analogWrite(motorR2, 255);
+  analogWrite(motorL1, 0);
+  analogWrite(motorL2, 255);
+  delay(500);
+  analogWrite(motorR1, 255);
+  analogWrite(motorR2, 0);
+  analogWrite(motorL1, 255);
+  analogWrite(motorL2, 0);
+  delay(500);
+  }
 }
