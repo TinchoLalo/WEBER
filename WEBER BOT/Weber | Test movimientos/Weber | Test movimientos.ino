@@ -284,7 +284,7 @@ void test() {
 void error(){
   Serial.println("Error desconocido..");
   digitalWrite(ledTest, HIGH);
-  reset();
+  //reset();
 }
 
 /*
