@@ -6,7 +6,7 @@
   @Proyecto:    Robot Mini-Sumo
   @Autor:       Equipo Weber Bot
   @Placa:       Arduino NANO
-  @Descripción: Código para robot minisumo, con sistema de detección infrarrojo
+  @Descripción: Código para robot minisumo, con sistema de detección infrarrojo y motores DC
 */
 
 //========================== MODOS ========================== 
