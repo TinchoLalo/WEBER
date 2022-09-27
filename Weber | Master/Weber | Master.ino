@@ -142,13 +142,13 @@ void setup() {
 void loop(){
  
   if(Lucha) {
-    Serial.println("<<< MODO LUCHA >>>");
+    //Serial.println("<<< MODO LUCHA >>>");
   
     if (receptorIr.decode(&codigoLeido)) { 
       Serial.println(codigoLeido.value, HEX);
 
       switch (codigoLeido.value) {
-        case 0xFF6897:
+        case 0xCB9A:
           for(int i=0; i<5; i++){
             digitalWrite(ledR, LOW);
             delay(500);
