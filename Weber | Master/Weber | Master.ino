@@ -9,7 +9,7 @@
   @Descripción: Código para robot minisumo, con sistema de detección infrarrojo
 */
 
-//seteado
+//========================== MODOS ========================== 
 
 boolean Test    = true;      // Indica el modo pruebas del código
 boolean Lucha   = !Test;     // Indica si el sumo ha sido activado para competir
@@ -212,9 +212,9 @@ void lucha(){do {  //entro en un bucle
     //valor270 = analogRead(sensor270);
 
     //asignamos valores a los motores
-    if(valor0>100){L1=255;R2=mid;} 
+    if(valor90>100){R1=255; L1=255;}
+    else if(valor0>100){L1=255;R2=mid;} 
     else if(valor45>100){L1=255;}
-    else if(valor90>100){R1=255; L1=255;}
     else if(valor135>100){R1=255;}
     else if(valor180>100){R1=255;L2=mid;}
     else {
