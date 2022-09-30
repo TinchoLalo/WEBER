@@ -21,6 +21,11 @@ boolean linea   = false;
 int ref = 500;
 int dis[] = {80,80,110,80,80}; // 0, 45, 90, 135, 180
 
+//== ULTRASONICO
+int disparo = 0;
+int eco = 0;
+long tiempoPulso;
+float  dstMedida;
 
 // ========================== SENSORES INFRAROJOS ==========================
 int emisorIR       = 12;  // emisores infrarrojos controlados a través de transistor 2n2222a
@@ -100,6 +105,10 @@ void setup() {
   
   pinMode(ledTest, OUTPUT);
   pinMode(emisorIR, OUTPUT);
+  pinMode(eco, INPUT);
+  pinMode(disparo, OUTPUT);
+  digitalWrite(disparo, LOW);
+
   //pinMode(emisorLinea, OUTPUT);
   pinMode(ledR, OUTPUT);
   pinMode(ledG, OUTPUT);  
@@ -160,16 +169,34 @@ void loop(){
             digitalWrite(ledR, HIGH);
             delay(500);      
           }  
-        default: // modo default por si acaba la pila del control
+        /*default: // modo default por si acaba la pila del control
             for(int i=0; i<5; i++){
             digitalWrite(ledR, LOW);
             delay(500);
             digitalWrite(ledR, HIGH);
             delay(500);      
-          }   
+          }   */
           lucha(); 
-    
-        break;
+          
+        case 0xCB:
+          adelante();
+          delay(200);
+          break;
+        case 0xCB:
+          atras();
+          delay(200);   
+          break;
+        case 0xCB:
+          taladro();
+          break;
+         case 0xCB:
+          rotarL();
+          delay(200);
+          break;
+         case 0xCB:
+          rotaR();
+          delay(200);
+          break;
       }
       receptorIr.resume();
     }
@@ -213,6 +240,16 @@ void lucha(){do {  //entro en un bucle
       stop();
       linea = false;
     }*/
+    
+   /* digitalWrite(disp, LOW);
+       delayMicroseconds(50);
+       digitalWrite(disp, HIGH);
+       delayMicroseconds(10); 
+       digitalWrite(disp, LOW);
+  
+  tPulso = pulseIn(eco, HIGH);
+
+  if(tPulso>1200 && tPulso<6000){*/
   
     digitalWrite(ledR, HIGH);
 
