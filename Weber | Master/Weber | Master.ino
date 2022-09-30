@@ -6,15 +6,21 @@
   @Proyecto:    Robot Mini-Sumo
   @Autor:       Equipo Weber Bot
   @Placa:       Arduino NANO
-  @Descripción: Código para robot minisumo, con sistema de detección infrarrojo
+  @Descripción: Código para robot minisumo, con sistema de detección infrarrojo y motores DC
 */
 
 //========================== MODOS ========================== 
 
-boolean Test    = true;      // Indica el modo pruebas del código
+boolean Test    = false;      // Indica el modo pruebas del código
 boolean Lucha   = !Test;     // Indica si el sumo ha sido activado para competir
-boolean TestMotor = true;
+boolean TestMotor = false;
 boolean linea   = false;
+
+
+//========================== REFERENCIAS ========================== 
+int ref = 500;
+int dis[] = {80,80,110,80,80}; // 0, 45, 90, 135, 180
+
 
 // ========================== SENSORES INFRAROJOS ==========================
 int emisorIR       = 12;  // emisores infrarrojos controlados a través de transistor 2n2222a
@@ -47,7 +53,7 @@ int motorL1        = 11;   // Pin Motor Izquierda Adelante
 int motorL2        = 6;   // Pin Motor Izquierda Atras
 
 // velocidades del motor
-int max = 255; 
+int max = 200; 
 int mid = 125;
 
 
@@ -70,7 +76,6 @@ int botonModo    = 2;
 
 
 
-int ref = 500;
 //========================= BUZZER PARLANTE =========================//
 
 int bGND = 2;
@@ -142,19 +147,26 @@ void setup() {
 void loop(){
  
   if(Lucha) {
-    Serial.println("<<< MODO LUCHA >>>");
+    //Serial.println("<<< MODO LUCHA >>>");
   
     if (receptorIr.decode(&codigoLeido)) { 
       Serial.println(codigoLeido.value, HEX);
 
       switch (codigoLeido.value) {
-        case 0xFF6897:
+        case 0xCB9A:
           for(int i=0; i<5; i++){
             digitalWrite(ledR, LOW);
             delay(500);
             digitalWrite(ledR, HIGH);
             delay(500);      
           }  
+        default: // modo default por si acaba la pila del control
+            for(int i=0; i<5; i++){
+            digitalWrite(ledR, LOW);
+            delay(500);
+            digitalWrite(ledR, HIGH);
+            delay(500);      
+          }   
           lucha(); 
     
         break;
@@ -186,7 +198,7 @@ void loop(){
 void lucha(){do {  //entro en un bucle
 
   digitalWrite(ledG, LOW);
-  digitalWrite(ledB, LOW);
+  //digitalWrite(ledB, LOW);
 
   valorA = analogRead(sensorA);
   //valorB = analogRead(sensorB);  
@@ -195,12 +207,12 @@ void lucha(){do {  //entro en un bucle
 
   if(valorA<ref){//si se encuentra dentro del circulo, escanea y mueve
 
-    if(linea == true){
+    /*if(linea == true){
       rotarL();
-      delay(500);
+      delay(300);
       stop();
       linea = false;
-    }
+    }*/
   
     digitalWrite(ledR, HIGH);
 
@@ -212,11 +224,11 @@ void lucha(){do {  //entro en un bucle
     //valor270 = analogRead(sensor270);
 
     //asignamos valores a los motores
-    if(valor90>100){R1=255; L1=255;}
-    else if(valor0>100){L1=255;R2=mid;} 
-    else if(valor45>100){L1=255;}
-    else if(valor135>100){R1=255;}
-    else if(valor180>100){R1=255;L2=mid;}
+    if(valor90>dis[2]){R1=255; L1=255;}
+    else if(valor0>dis[0]){L1=255;R2=mid;} //20
+    else if(valor45>dis[1]){L1=255;} // 50
+    else if(valor135>dis[3]){R1=255;} // 55
+    else if(valor180>dis[4]){R1=255;L2=mid;} //55
     else {
     }
 
@@ -224,12 +236,18 @@ void lucha(){do {  //entro en un bucle
 
   else if(valorA>ref){//toca la linea blanca
     
-    digitalWrite(ledR, LOW);
-    R1 = 0;
-    R2 = max;
-    L1 = 0;
-    L2 = max;
-    linea = true;
+    analogWrite(motorR1, 0);
+    analogWrite(motorR2, 255);
+    analogWrite(motorL1, 0);
+    analogWrite(motorL2, 255);
+    delay(150);
+    analogWrite(motorR1, 0);
+    analogWrite(motorR2, 255);
+    analogWrite(motorL1, 255);
+    analogWrite(motorL2, 0);
+    delay(400);
+
+    //linea = true;
   }
   else {
     //error
@@ -240,11 +258,11 @@ void lucha(){do {  //entro en un bucle
   analogWrite(motorR2, R2);
   analogWrite(motorL1, L1);
   analogWrite(motorL2, L2);
-  delay(25);
-  R1 = mid;
-  R2 = mid;
-  L1 = mid;
-  L2 = mid;
+  delay(1);
+  R1 = max;
+  R2 = 0;
+  L1 = max;
+  L2 = 0;
 
 
   //digitalWrite(ledR, HIGH)
@@ -257,11 +275,11 @@ void lucha(){do {  //entro en un bucle
 //funcion test(#)
 
 void test() {
-    valor0 = analogRead(sensor0);
-    valor45 = analogRead(sensor45);
-    valor90 = analogRead(sensor90);
-    valor135 = analogRead(sensor135);
-    valor180 = analogRead(sensor180);
+    valor0 = analogRead(sensor0);//40
+    valor45 = analogRead(sensor45);//50
+    valor90 = analogRead(sensor90);//50
+    valor135 = analogRead(sensor135);//40
+    valor180 = analogRead(sensor180);//60
     valorA = analogRead(sensorA);
 
     Serial.print(valor0);
