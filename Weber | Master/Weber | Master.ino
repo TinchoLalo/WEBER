@@ -150,6 +150,9 @@ void setup() {
     delay(100);      
   }  
 
+  // tomar la referencia 
+  ref = analogRead(sensorA)+ 100;
+
   /*
   tone(buzzer, 1000, 1000);
   */
