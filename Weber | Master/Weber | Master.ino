@@ -22,11 +22,6 @@ int ref = 600;
 int dis[] = {7,7,7,7,7}; // 0, 45, 90, 135, 180
 
 
-//== ULTRASONICO
-int disparo = 0;
-int eco = 0;
-long tiempoPulso;
-float  dstMedida;
 
 // ========================== SENSORES INFRAROJOS ==========================
 int emisorIR       = 12;  // emisores infrarrojos controlados a través de transistor 2n2222a
@@ -114,13 +109,8 @@ void setup() {
   pinMode(ledTest, OUTPUT);
   pinMode(emisorIR, OUTPUT);
   pinMode(eco, INPUT);
-<<<<<<< HEAD
   pinMode(disp, OUTPUT);
   digitalWrite(disp, LOW);
-=======
-  pinMode(disparo, OUTPUT);
-  digitalWrite(disparo, LOW);
->>>>>>> 7d8953545bb72b8a8e4e50b1e0207b97150d9372
 
   //pinMode(emisorLinea, OUTPUT);
   pinMode(ledR, OUTPUT);
@@ -182,11 +172,7 @@ void loop(){
             digitalWrite(ledR, HIGH);
             delay(500);      
           }  
-<<<<<<< HEAD
           /*default: // modo default por si acaba la pila del control
-=======
-        /*default: // modo default por si acaba la pila del control
->>>>>>> 7d8953545bb72b8a8e4e50b1e0207b97150d9372
             for(int i=0; i<5; i++){
             digitalWrite(ledR, LOW);
             delay(500);
@@ -195,7 +181,6 @@ void loop(){
           }   */
           lucha(); 
           
-<<<<<<< HEAD
         case 0x7B429C09:
           adelante();
           delay(50);
@@ -234,27 +219,6 @@ void loop(){
       
           break;
         
-=======
-        case 0xCB:
-          adelante();
-          delay(200);
-          break;
-        case 0xCB:
-          atras();
-          delay(200);   
-          break;
-        case 0xCB:
-          taladro();
-          break;
-         case 0xCB:
-          rotarL();
-          delay(200);
-          break;
-         case 0xCB:
-          rotaR();
-          delay(200);
-          break;
->>>>>>> 7d8953545bb72b8a8e4e50b1e0207b97150d9372
       }
     
       receptorIr.resume();
@@ -288,30 +252,11 @@ void lucha(){do {
 
   if(valorA<ref){
 
-<<<<<<< HEAD
     digitalWrite(disp, LOW);
     delayMicroseconds(50);
     digitalWrite(disp, HIGH);
     delayMicroseconds(10); 
     digitalWrite(disp, LOW);
-=======
-    /*if(linea == true){
-      rotarL();
-      delay(300);
-      stop();
-      linea = false;
-    }*/
-    
-   /* digitalWrite(disp, LOW);
-       delayMicroseconds(50);
-       digitalWrite(disp, HIGH);
-       delayMicroseconds(10); 
-       digitalWrite(disp, LOW);
-  
-  tPulso = pulseIn(eco, HIGH);
-
-  if(tPulso>1200 && tPulso<6000){*/
->>>>>>> 7d8953545bb72b8a8e4e50b1e0207b97150d9372
   
     tPulso = pulseIn(eco, HIGH);
 
@@ -346,10 +291,7 @@ void lucha(){do {
     //linea = true;
   }
   else {
-  R1 = 100;
-  R2 = 0;
-  L1 = 0;
-  L2 = 100;
+    //error
   }
 
   //concluimos
@@ -358,7 +300,10 @@ void lucha(){do {
   analogWrite(motorL1, L1);
   analogWrite(motorL2, L2);
   delay(100);
-  
+  R1 = 100;
+  R2 = 0;
+  L1 = 0;
+  L2 = 100;
 
 
   //digitalWrite(ledR, HIGH)
