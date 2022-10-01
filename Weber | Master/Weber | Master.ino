@@ -165,7 +165,7 @@ void loop(){
       Serial.println(codigoLeido.value, HEX);
 
       switch (codigoLeido.value) {
-        case 0xAF4060ED:
+        case 0xCB9A:
           for(int i=0; i<5; i++){
             digitalWrite(ledR, LOW);
             delay(500);
