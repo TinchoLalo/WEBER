@@ -18,8 +18,9 @@ boolean linea   = false;
 
 
 //========================== REFERENCIAS ========================== 
-int ref = 500;
-int dis[] = {80,80,110,80,80}; // 0, 45, 90, 135, 180
+int ref = 600;
+int dis[] = {7,7,7,7,7}; // 0, 45, 90, 135, 180
+
 
 
 // ========================== SENSORES INFRAROJOS ==========================
@@ -53,7 +54,7 @@ int motorL1        = 11;   // Pin Motor Izquierda Adelante
 int motorL2        = 6;   // Pin Motor Izquierda Atras
 
 // velocidades del motor
-int max = 200; 
+int max = 255; 
 int mid = 125;
 
 
@@ -77,9 +78,16 @@ int botonModo    = 2;
 
 
 //========================= BUZZER PARLANTE =========================//
-
+/*
 int bGND = 2;
 int buzzer = 3;
+*/
+
+//== ULTRASONICO
+int disp = 2;
+int eco = 3;
+long tPulso;
+float  dstMedida;
 
 //  ========================= CONTROL REMOTO =========================//
 int receptorIR = 5;
@@ -100,17 +108,21 @@ void setup() {
   
   pinMode(ledTest, OUTPUT);
   pinMode(emisorIR, OUTPUT);
+  pinMode(eco, INPUT);
+  pinMode(disp, OUTPUT);
+  digitalWrite(disp, LOW);
+
   //pinMode(emisorLinea, OUTPUT);
   pinMode(ledR, OUTPUT);
   pinMode(ledG, OUTPUT);  
-  pinMode(ledB, OUTPUT);
-  pinMode(bGND, OUTPUT);
+ // pinMode(ledB, OUTPUT);
+  //pinMode(bGND, OUTPUT);
   
 
   digitalWrite(ledR, HIGH);
   digitalWrite(ledG, HIGH);
   digitalWrite(ledB, HIGH);
-  digitalWrite(bGND, HIGH);
+  //digitalWrite(bGND, HIGH);
   //analogWrite(Buzzer, 150);
 
  // pinMode(botonA, INPUT);
@@ -153,24 +165,62 @@ void loop(){
       Serial.println(codigoLeido.value, HEX);
 
       switch (codigoLeido.value) {
-        case 0xCB9A:
+        case 0xAF4060ED:
           for(int i=0; i<5; i++){
             digitalWrite(ledR, LOW);
             delay(500);
             digitalWrite(ledR, HIGH);
             delay(500);      
           }  
-        default: // modo default por si acaba la pila del control
+          /*default: // modo default por si acaba la pila del control
             for(int i=0; i<5; i++){
             digitalWrite(ledR, LOW);
             delay(500);
             digitalWrite(ledR, HIGH);
             delay(500);      
-          }   
+          }   */
           lucha(); 
-    
-        break;
+          
+        case 0x7B429C09:
+          adelante();
+          delay(50);
+          stop();
+          
+          break;
+        case 0xE8910B0D:
+          atras();
+          delay(50);
+          stop();
+             
+          break;
+        
+        case 0x7BA58C69:
+          adelanteL();
+          delay(50);
+          stop();
+          
+          break;
+        case 0x63DD5653:
+          adelanteR();
+          delay(50);
+          stop();
+          
+          break;
+
+        /*case 0xCB0905A9:
+          taladro();
+          
+          break;*/
+
+        case 0xC98734CD:
+          rotarL();
+          delay(50);
+          stop();
+      
+          break;
+        
       }
+    
       receptorIr.resume();
     }
   }//cierra el modo lucha
@@ -195,26 +245,20 @@ void loop(){
 /////////////////////////////////
 //Programas !!
 
-void lucha(){do {  //entro en un bucle
+void lucha(){do {
 
   digitalWrite(ledG, LOW);
-  //digitalWrite(ledB, LOW);
+  valorA = analogRead(sensorA);  
 
-  valorA = analogRead(sensorA);
-  //valorB = analogRead(sensorB);  
-  //boolean insuto = valor;
+  if(valorA<ref){
+
+    digitalWrite(disp, LOW);
+    delayMicroseconds(50);
+    digitalWrite(disp, HIGH);
+    delayMicroseconds(10); 
+    digitalWrite(disp, LOW);
   
-
-  if(valorA<ref){//si se encuentra dentro del circulo, escanea y mueve
-
-    /*if(linea == true){
-      rotarL();
-      delay(300);
-      stop();
-      linea = false;
-    }*/
-  
-    digitalWrite(ledR, HIGH);
+    tPulso = pulseIn(eco, HIGH);
 
     valor0 = analogRead(sensor0);
     valor45 = analogRead(sensor45);
@@ -223,14 +267,11 @@ void lucha(){do {  //entro en un bucle
     valor180 = analogRead(sensor180);
     //valor270 = analogRead(sensor270);
 
-    //asignamos valores a los motores
-    if(valor90>dis[2]){R1=255; L1=255;}
-    else if(valor0>dis[0]){L1=255;R2=mid;} //20
-    else if(valor45>dis[1]){L1=255;} // 50
-    else if(valor135>dis[3]){R1=255;} // 55
-    else if(valor180>dis[4]){R1=255;L2=mid;} //55
-    else {
-    }
+    if(tPulso>10 && tPulso<3500){R1=255; L1=255;}
+    else if(valor0>dis[0]){L1=200;R2=200;} //20
+    else if(valor45>dis[1]){L1=200;R2=100;} // 50
+    else if(valor135>dis[3]){R1=200;L2=100;} // 55
+    else if(valor180>dis[4]){R1=200;L2=200;} //55
 
   }
 
@@ -240,17 +281,20 @@ void lucha(){do {  //entro en un bucle
     analogWrite(motorR2, 255);
     analogWrite(motorL1, 0);
     analogWrite(motorL2, 255);
-    delay(150);
-    analogWrite(motorR1, 0);
-    analogWrite(motorR2, 255);
-    analogWrite(motorL1, 255);
-    analogWrite(motorL2, 0);
-    delay(400);
+    delay(170);
+    analogWrite(motorR1, 255);
+    analogWrite(motorR2, 0);
+    analogWrite(motorL1, 0);
+    analogWrite(motorL2, 255);
+    delay(200);
 
     //linea = true;
   }
   else {
-    //error
+  R1 = 100;
+  R2 = 0;
+  L1 = 0;
+  L2 = 100;
   }
 
   //concluimos
@@ -258,11 +302,8 @@ void lucha(){do {  //entro en un bucle
   analogWrite(motorR2, R2);
   analogWrite(motorL1, L1);
   analogWrite(motorL2, L2);
-  delay(1);
-  R1 = max;
-  R2 = 0;
-  L1 = max;
-  L2 = 0;
+  delay(100);
+  
 
 
   //digitalWrite(ledR, HIGH)
@@ -275,6 +316,16 @@ void lucha(){do {  //entro en un bucle
 //funcion test(#)
 
 void test() {
+  digitalWrite(disp, LOW);
+      delayMicroseconds(50);
+      digitalWrite(disp, HIGH);
+      delayMicroseconds(10); 
+      digitalWrite(disp, LOW);
+  
+  tPulso = pulseIn(eco, HIGH);
+
+  Serial.println(tPulso);
+
     valor0 = analogRead(sensor0);//40
     valor45 = analogRead(sensor45);//50
     valor90 = analogRead(sensor90);//50
@@ -362,6 +413,20 @@ void atras(){
 }
 void adelante(){
   analogWrite(motorR1, 255); // motor derecho adelante
+  analogWrite(motorR2, 0);
+  analogWrite(motorL1, 255);
+  analogWrite(motorL2, 0);
+}
+
+void adelanteR(){
+  analogWrite(motorR1, 255); // motor derecho adelante
+  analogWrite(motorR2, 0);
+  analogWrite(motorL1, 0);
+  analogWrite(motorL2, 0);
+}
+
+void adelanteL(){
+  analogWrite(motorR1, 0); // motor derecho adelante
   analogWrite(motorR2, 0);
   analogWrite(motorL1, 255);
   analogWrite(motorL2, 0);
