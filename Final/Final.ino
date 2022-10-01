@@ -18,13 +18,13 @@ boolean linea   = false;
 
 
 //========================== REFERENCIAS ========================== 
-int ref = 800;
-int dis[] = {50,45,90,135,180}; // 0, 45, 90, 135, 180
+int ref = 500;
+int dis[] = {600,600,600,600,600}; // 0, 45, 90, 135, 180
 
 
 
 // ========================== SENSORES INFRAROJOS ==========================
-int emisorIR       = 12;  // emisores infrarrojos controlados a través de transistor 2n2222a
+//int emisorIR       = 12;  // emisores infrarrojos controlados a través de transistor 2n2222a
 //int emisorLinea    = 2;  // emisores infrarrojos sigue linas 
 const int sensor0        = A4;  // Receptores IR
 const int sensor45       = A6;  //
@@ -58,14 +58,14 @@ int max = 255;
 int mid = 125;
 
 
-int R1 = mid;
-int R2 = mid;
-int L1 = mid;
-int L2 = mid;
+int R1 = 0;
+int R2 = 0;
+int L1 = 0;
+int L2 = 0;
 
 // ========================== LEDS INDICADORES ==================================
 int ledTest        = 13;  // Led indicador encendido
-int ledR           = 4;   // Led indicador Ready, semaforo
+int ledR           = 5;   // Led indicador Ready, semaforo
 int ledG           = 7;  // Led indicador LUCHA!
 int ledB           = 8;  // Led indicador otros
 
@@ -90,7 +90,7 @@ long tPulso;
 float  dstMedida;
 
 //  ========================= CONTROL REMOTO =========================//
-int receptorIR = 5;
+int receptorIR = 4;
 IRrecv receptorIr(receptorIR);
 decode_results codigoLeido;
 
@@ -107,7 +107,7 @@ void setup() {
   //configuración de los pines de entrada y salida
   
   pinMode(ledTest, OUTPUT);
-  pinMode(emisorIR, OUTPUT);
+ // pinMode(emisorIR, OUTPUT);
   pinMode(eco, INPUT);
   pinMode(disp, OUTPUT);
   digitalWrite(disp, LOW);
@@ -151,7 +151,7 @@ void setup() {
   }  
 
   // tomar la referencia 
-  ref = analogRead(sensorA)+ 100;
+  //ref = analogRead(sensorA)+ 100;
 
   /*
   tone(buzzer, 1000, 1000);
@@ -184,6 +184,7 @@ void loop(){
           }   */
           lucha(); 
           
+          /*
         case 0x7B429C09:
           adelante();
           delay(50);
@@ -213,34 +214,34 @@ void loop(){
         /*case 0xCB0905A9:
           taladro();
           
-          break;*/
+          break;
 
         case 0xC98734CD:
           rotarL();
           delay(50);
           stop();
       
-          break;
+          break;*/
         
       }
-      
+    
       receptorIr.resume();
+      
     }
     lucha(); 
-  }//cierra el modo lucha
-
+  }
   else if (Test && !TestMotor) {
     Serial.println("<<< MODO TEST >>>");
-    test();
+    //test();
   }
 
   else if (TestMotor){
-    testMotor();
+    //testMotor();
   }
   
   else {
-    error();
-    Serial.println("<<< ERROR: modo no seleccionado >>>");
+  //error();
+  Serial.println("<<< ERROR: modo no seleccionado >>>");
   }
 
 
@@ -253,39 +254,27 @@ void lucha(){do {
 
   digitalWrite(ledG, LOW);
   valorA = analogRead(sensorA);  
-
-  if(valorA<ref){
-
-    digitalWrite(disp, LOW);
-    delayMicroseconds(50);
-    digitalWrite(disp, HIGH);
-    delayMicroseconds(10); 
-    digitalWrite(disp, LOW);
-  
-    tPulso = pulseIn(eco, HIGH);
-
-    valor0 = analogRead(sensor0);
+  valor0 = analogRead(sensor0);
     valor45 = analogRead(sensor45);
     valor90 = analogRead(sensor90);
     valor135 = analogRead(sensor135);
     valor180 = analogRead(sensor180);
-    //valor270 = analogRead(sensor270);
 
-    if(tPulso>10 && tPulso<3500){R1=255; L1=255;}
-    else if(valor0>dis[0]){L1=200;R2=200;} //20
-    else if(valor45>dis[1]){L1=200;R2=100;} // 50
-    else if(valor135>dis[3]){R1=200;L2=100;} // 55
-    else if(valor180>dis[4]){R1=200;L2=200;} //55
-
-  }
-
-  else if(valorA>ref){//toca la linea blanca
+  if(valorA>ref){//toca la linea blanca
     
-    analogWrite(motorR1, 0);
-    analogWrite(motorR2, 255);
-    analogWrite(motorL1, 0);
-    analogWrite(motorL2, 255);
-    delay(170);
+    R1 = 0;
+    R2 = 255;
+    L1 = 0;
+    L2 = 255;
+    analogWrite(motorR1, R1);
+    analogWrite(motorR2, R2);
+    analogWrite(motorL1, L1);
+    analogWrite(motorL2, L2);
+    delay(200);
+    R1 = 255;
+    R2 = 0;
+    L1 = 0;
+    L2 = 255;
     analogWrite(motorR1, 255);
     analogWrite(motorR2, 0);
     analogWrite(motorL1, 0);
@@ -294,8 +283,35 @@ void lucha(){do {
 
     //linea = true;
   }
-  else {
+  else if(valorA < ref){
+    digitalWrite(disp, LOW);
+    delayMicroseconds(25);
+    digitalWrite(disp, HIGH);
+    delayMicroseconds(10); 
+    digitalWrite(disp, LOW);
+    tPulso = pulseIn(eco, HIGH);
+
+    if(tPulso>5 && tPulso<4000){
+      R1=250; L1=250; R2=0;L2=0;
+    }
+
+    
+    //valor270 = analogRead(sensor270);
+    else if(valor0>dis[0]){L1=255; L2=0;R1=0;R2=0;} //20
+    else if(valor45>dis[1]){L1=255;L2=0;R1=0;R2=0;} // 50
+    else if(valor135>dis[3]){R1=255;R2=0;L1=0;L2=0;} // 55
+    else if(valor180>dis[4]){R1=255;R2=0;L1=0;L2=0;} //55
+  }
+  
+  
+  else{
+    
+    R1 = 50;
+    R2 = 0;
+    L1 = 50;
+    L2 = 0;
     //error
+    
   }
 
   //concluimos
@@ -303,7 +319,7 @@ void lucha(){do {
   analogWrite(motorR2, R2);
   analogWrite(motorL1, L1);
   analogWrite(motorL2, L2);
-  delay(100);
+  delay(500);
   
 
 
@@ -318,34 +334,34 @@ void lucha(){do {
 
 void test() {
   digitalWrite(disp, LOW);
-      delayMicroseconds(50);
-      digitalWrite(disp, HIGH);
-      delayMicroseconds(10); 
-      digitalWrite(disp, LOW);
+  delayMicroseconds(50);
+  digitalWrite(disp, HIGH);
+  delayMicroseconds(10); 
+  digitalWrite(disp, LOW);
   
   tPulso = pulseIn(eco, HIGH);
 
   Serial.println(tPulso);
 
-  valor0 = analogRead(sensor0);//40
-  valor45 = analogRead(sensor45);//50
-  valor90 = analogRead(sensor90);//50
-  valor135 = analogRead(sensor135);//40
-  valor180 = analogRead(sensor180);//60
-  valorA = analogRead(sensorA);
+    valor0 = analogRead(sensor0);//40
+    valor45 = analogRead(sensor45);//50
+    valor90 = analogRead(sensor90);//50
+    valor135 = analogRead(sensor135);//40
+    valor180 = analogRead(sensor180);//60
+    valorA = analogRead(sensorA);
 
-  Serial.print(valor0);
-  Serial.print(" - ");
-  Serial.print(valor45);
-  Serial.print(" - ");
-  Serial.print(valor90);
-  Serial.print(" - ");
-  Serial.print(valor135);
-  Serial.print(" - ");
-  Serial.print(valor180);
-  Serial.print(" - ");
-  Serial.print(valorA);
-  Serial.print(" - ");
+    Serial.print(valor0);
+    Serial.print(" - ");
+    Serial.print(valor45);
+    Serial.print(" - ");
+    Serial.print(valor90);
+    Serial.print(" - ");
+    Serial.print(valor135);
+    Serial.print(" - ");
+    Serial.print(valor180);
+    Serial.print(" - ");
+    Serial.print(valorA);
+    Serial.print(" - ");
 
     
 
